@@ -9,8 +9,10 @@ function parse() {
     speech = speech.split('\n');
 
     rePresident = new RegExp(/^THE PRESIDENT:/g);
+    rePresidentTrump = new RegExp(/^PRESIDENT TRUMP:/g);
 
-    reInterviewer = new RegExp(/[A-Z]{2,}/);
+    reInterviewer = new RegExp(/^[A-Z]{2,}/);
+    reInterviewerQ = new RegExp(/^Q /);
 
     reParentheses = new RegExp(/\(([^\)]+)\)/g);
 
@@ -29,14 +31,15 @@ function parse() {
         if (line) {
             // Is the President talking?
             let pres = rePresident.exec(line);
+            let presT = rePresidentTrump.exec(line);
 
             // Is the interviewer talking
             let interviewer = reInterviewer.test(line);
+            let interviewerQ = reInterviewerQ.test(line);
 
-
-            if (pres) {
+            if (pres || presT) {
                 // Take out the name
-                line = line.replace(rePresident, '<' + pres[0] + '>');
+                line = (pres ? line.replace(rePresident, '<' + pres[0] + '>') : line.replace(rePresidentTrump, '<' + presT[0] + '>'));
 
                 // Is anyone laughing or clapping?
                 line = audience(reParentheses, line);
@@ -47,7 +50,7 @@ function parse() {
                 output += line;
 
                 console.log('PRES: ', line);
-            } else if (interviewer) {
+            } else if (interviewer || interviewerQ) {
                 // take out the line
                 line = '<' + line + '>';
 
